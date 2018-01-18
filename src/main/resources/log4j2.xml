@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- THIS IS ONLY USED IN DEV, NEVER IN PRODUCTION -->
+<Configuration status="WARN">
+    <Appenders>
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d{HH:mm:ss.SSS} %-5level %c{1.} [%t]: %msg%n"/>
+        </Console>
+    </Appenders>
+    <Loggers>
+        <Logger name="com.stanlemon" level="INFO"/>
+        <Logger name="com.salesforce.storm.spout" level="INFO"/>
+        <Root level="WARN">
+            <AppenderRef ref="Console"/>
+        </Root>
+    </Loggers>
+</Configuration>

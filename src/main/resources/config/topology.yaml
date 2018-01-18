@@ -1,0 +1,38 @@
+spout.output_fields:
+  - key
+  - value
+spout.metrics.class: com.salesforce.storm.spout.dynamic.metrics.StormRecorder
+spout.coordinator.virtual_spout_id_prefix: example
+spout.coordinator.tuple_buffer.class: com.salesforce.storm.spout.dynamic.buffer.ThrottledMessageBuffer
+spout.coordinator.tuple_buffer.throttled_buffer_size: 1
+spout.coordinator.tuple_buffer.throttle_ratio: 100
+spout.coordinator.tuple_buffer.throttled_spout_id_regex: /:sideline:/
+
+## Kafka consumer configuration
+spout.kafka.brokers:
+  - 127.0.0.1:9092
+spout.kafka.topic: test
+spout.kafka.deserializer.class: com.salesforce.storm.spout.dynamic.kafka.deserializer.Utf8StringDeserializer
+
+
+## Spout persistence configuration (where to store consumer state, etc.)
+spout.persistence_adapter.class: com.salesforce.storm.spout.dynamic.persistence.ZookeeperPersistenceAdapter
+spout.persistence.zookeeper.servers:
+  - 127.0.0.1:2181
+spout.persistence.zookeeper.root: /storm-dynamic-spout
+
+## Which example trigger implementation to use, this one is shipped with the library and based off Zookeeper watches
+sideline.trigger_class: com.salesforce.storm.spout.sideline.trigger.example.ZookeeperWatchTrigger
+
+## Sideline persistence configuration (where to store filters and consumer offsets)
+sideline.persistence_adapter.class: com.salesforce.storm.spout.sideline.persistence.ZookeeperPersistenceAdapter
+sideline.persistence.zookeeper.servers:
+  - 127.0.0.1:2181
+sideline.persistence.zookeeper.root: /storm-dynamic-spout
+
+## Zookeeper Watch Trigger configuration
+sideline.zookeeper_watch_trigger.servers:
+  - 127.0.0.1:2181
+sideline.zookeeper_watch_trigger.roots:
+  - /sideline-trigger
+sideline.zookeeper_watch_trigger.filter_chain_step_builder_class: com.stanlemon.storm.example.filter.KeyFilterBuilder
