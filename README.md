@@ -22,10 +22,10 @@ mvn clean compile exec:java@sideline -Dexec.args="-t start -c Stan Lemon -r Test
 
 Resume a sideline for key2.
 ```
-mvn clean compile exec:java@sideline -Dexec.args="-t resume -i 6469C0AEF31751437498A4B9A99D3A4E"
+mvn clean compile exec:java@sideline -Dexec.args="-t resume -i 66EBC560971A102573B6C34BE1242116"
 ```
 
 Resolve a sideline for key2.
 ```
-mvn clean compile exec:java@sideline -Dexec.args="-t resolve -i 6469C0AEF31751437498A4B9A99D3A4E"
+mvn clean compile exec:java@sideline -Dexec.args="-t resolve -i 66EBC560971A102573B6C34BE1242116"
 ```

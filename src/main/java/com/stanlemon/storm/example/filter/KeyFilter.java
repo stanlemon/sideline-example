@@ -18,7 +18,8 @@ public class KeyFilter implements FilterChainStep, Serializable {
     @Override
     public boolean filter(Message message) {
         final String key = String.valueOf(message.getValues().get(0));
-        return !filteredKeys.contains(key);
+        // If the key for this message is contained in our list we filter it out
+        return filteredKeys.contains(key);
     }
 
     @Override

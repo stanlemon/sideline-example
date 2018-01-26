@@ -47,55 +47,57 @@ public class Sideline {
             .setDateFormat("yyyy-MM-dd HH:mm:ss")
             .create();
 
-        final CuratorFramework currator = CuratorFactory.createNewCuratorInstance(
+        try (final CuratorFramework currator = CuratorFactory.createNewCuratorInstance(
             Tools.stripKeyPrefix(Config.PREFIX, config),
             Sideline.class.getSimpleName()
-        );
-        final CuratorHelper curatorHelper = new CuratorHelper(currator);
+        )) {
+            final CuratorHelper curatorHelper = new CuratorHelper(currator);
 
-        final String zkRoot = ((List<String>) config.get(Config.ZK_ROOTS)).get(0);
+            final String zkRoot = ((List<String>) config.get(Config.ZK_ROOTS)).get(0);
 
-        if (sidelineType.equals(SidelineType.START)) {
-            final LocalDateTime createdAt = LocalDateTime.now();
-            final String dataJson = cmd.getOptionValue("data");
+            if (sidelineType.equals(SidelineType.START)) {
+                final LocalDateTime createdAt = LocalDateTime.now();
+                final String dataJson = cmd.getOptionValue("data");
 
-            final TriggerEvent triggerEvent = new TriggerEvent(
-                sidelineType,
-                gson.fromJson(cmd.getOptionValue("data"), Map.class),
-                createdAt,
-                cmd.getOptionValue("createdby"),
-                cmd.getOptionValue("reason"),
-                false,
-                createdAt
-            );
+                final TriggerEvent triggerEvent = new TriggerEvent(
+                    sidelineType,
+                    gson.fromJson(cmd.getOptionValue("data"), Map.class),
+                    createdAt,
+                    cmd.getOptionValue("createdby"),
+                    cmd.getOptionValue("reason"),
+                    false,
+                    createdAt
+                );
 
-            // Use the data map, which should be things unique to define this criteria to generate our id
-            final String id = DatatypeConverter.printHexBinary(MessageDigest.getInstance("MD5")
-                .digest(dataJson.getBytes("UTF-8")));
+                // Use the data map, which should be things unique to define this criteria to generate our id
+                final String id = DatatypeConverter.printHexBinary(MessageDigest.getInstance("MD5")
+                    .digest(dataJson.getBytes("UTF-8")));
 
-            curatorHelper.writeJson(zkRoot + "/" + id, triggerEvent);
+                curatorHelper.writeJson(zkRoot + "/" + id, triggerEvent);
 
-            logger.info("Sideline {} saved!", id);
-        } else {
-            final TriggerEvent originalTriggerEvent = curatorHelper.readJson(zkRoot + "/" + sidelineId, TriggerEvent.class);
-            logger.info("Loaded {} {}", zkRoot + "/" + sidelineId, originalTriggerEvent);
-            final LocalDateTime updatedAt = LocalDateTime.now();
-            final TriggerEvent triggerEvent = new TriggerEvent(
-                sidelineType,
-                originalTriggerEvent.getData(),
-                originalTriggerEvent.getCreatedAt(),
-                originalTriggerEvent.getCreatedBy(),
-                originalTriggerEvent.getDescription(),
-                false,
-                updatedAt
-            );
+                logger.info("Sideline {} saved!", id);
+            } else {
+                final TriggerEvent originalTriggerEvent = curatorHelper.readJson(zkRoot + "/" + sidelineId, TriggerEvent.class);
 
-            curatorHelper.writeJson(zkRoot + "/" + sidelineId, triggerEvent);
+                Preconditions.checkNotNull(originalTriggerEvent, "Could not find the original trigger event!");
 
-            logger.info("Sideline {} updated!", sidelineId);
+                logger.info("Loaded {} {}", zkRoot + "/" + sidelineId, originalTriggerEvent);
+                final LocalDateTime updatedAt = LocalDateTime.now();
+                final TriggerEvent triggerEvent = new TriggerEvent(
+                    sidelineType,
+                    originalTriggerEvent.getData(),
+                    originalTriggerEvent.getCreatedAt(),
+                    originalTriggerEvent.getCreatedBy(),
+                    originalTriggerEvent.getDescription(),
+                    false,
+                    updatedAt
+                );
+
+                curatorHelper.writeJson(zkRoot + "/" + sidelineId, triggerEvent);
+
+                logger.info("Sideline {} updated!", sidelineId);
+            }
         }
-
-        currator.close();
     }
 
     private static CommandLine getArguments(String[] args) {

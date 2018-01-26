@@ -3,7 +3,7 @@ spout.output_fields:
   - value
 spout.metrics.class: com.salesforce.storm.spout.dynamic.metrics.StormRecorder
 spout.coordinator.virtual_spout_id_prefix: example
-spout.coordinator.tuple_buffer.class: com.salesforce.storm.spout.dynamic.buffer.ThrottledMessageBuffer
+spout.coordinator.tuple_buffer.class: com.salesforce.storm.spout.dynamic.buffer.RatioMessageBuffer
 spout.coordinator.tuple_buffer.throttled_buffer_size: 1
 spout.coordinator.tuple_buffer.throttle_ratio: 100
 spout.coordinator.tuple_buffer.throttled_spout_id_regex: /:sideline:/
