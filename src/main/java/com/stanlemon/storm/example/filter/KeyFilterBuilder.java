@@ -1,7 +1,7 @@
 package com.stanlemon.storm.example.filter;
 
 import com.salesforce.storm.spout.dynamic.filter.FilterChainStep;
-import com.salesforce.storm.spout.sideline.trigger.example.FilterChainStepBuilder;
+import com.salesforce.storm.spout.sideline.recipes.trigger.FilterChainStepBuilder;
 
 import java.util.List;
 import java.util.Map;
