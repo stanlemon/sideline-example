@@ -8,7 +8,7 @@ import java.util.Map;
 
 public class KeyFilterBuilder implements FilterChainStepBuilder {
 
-    private final static String FILTERED_KEYS = "filteredKeys";
+    private static final String FILTERED_KEYS = "filteredKeys";
 
     @Override
     public FilterChainStep build(Map<String, Object> data) {

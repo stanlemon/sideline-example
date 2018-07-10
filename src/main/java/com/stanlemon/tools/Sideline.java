@@ -9,7 +9,13 @@ import com.salesforce.storm.spout.dynamic.persistence.zookeeper.CuratorHelper;
 import com.salesforce.storm.spout.sideline.trigger.SidelineType;
 import com.salesforce.storm.spout.sideline.recipes.trigger.zookeeper.Config;
 import com.salesforce.storm.spout.sideline.recipes.trigger.TriggerEvent;
-import org.apache.commons.cli.*;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.storm.utils.Utils;
 import org.slf4j.Logger;
@@ -32,7 +38,8 @@ public class Sideline {
         final SidelineType sidelineType = getSidelineType(cmd.getOptionValue("type"));
 
         Preconditions.checkArgument(
-            !sidelineType.equals(SidelineType.START) || (sidelineType.equals(SidelineType.START) && cmd.hasOption("c") && cmd.hasOption("r") && cmd.hasOption("d")),
+            !sidelineType.equals(SidelineType.START)
+                || (sidelineType.equals(SidelineType.START) && cmd.hasOption("c") && cmd.hasOption("r") && cmd.hasOption("d")),
             "When starting a sideline you must specify createdby, reason and data options"
         );
 
@@ -41,18 +48,19 @@ public class Sideline {
             "When resuming or stopping a sideline you must specify the sideline id"
         );
 
-        final Map config = Utils.findAndReadConfigFile("config/topology.yaml", true);
+        final Map<String, Object> config = Utils.findAndReadConfigFile("config/topology.yaml", true);
 
         final Gson gson = new GsonBuilder()
             .setDateFormat("yyyy-MM-dd HH:mm:ss")
             .create();
 
-        try (final CuratorFramework currator = CuratorFactory.createNewCuratorInstance(
+        try (final CuratorFramework curator = CuratorFactory.createNewCuratorInstance(
             Tools.stripKeyPrefix(Config.PREFIX, config),
             Sideline.class.getSimpleName()
         )) {
-            final CuratorHelper curatorHelper = new CuratorHelper(currator);
+            final CuratorHelper curatorHelper = new CuratorHelper(curator);
 
+            @SuppressWarnings("unchecked")
             final String zkRoot = ((List<String>) config.get(Config.ZK_ROOTS)).get(0);
 
             if (sidelineType.equals(SidelineType.START)) {
@@ -141,8 +149,8 @@ public class Sideline {
                 return SidelineType.RESUME;
             case "resolve":
                 return SidelineType.RESOLVE;
+            default:
+                throw new IllegalArgumentException("Provide \"" + sidelineType + "\" is not a valid example type!");
         }
-
-        throw new IllegalArgumentException("Provide \"" + sidelineType + "\" is not a valid example type!");
     }
 }

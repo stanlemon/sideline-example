@@ -1,7 +1,13 @@
 package com.stanlemon.tools;
 
 import com.salesforce.storm.spout.dynamic.kafka.KafkaConsumerConfig;
-import org.apache.commons.cli.*;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.storm.utils.Utils;
@@ -66,10 +72,10 @@ public class Producer {
         final int max = Integer.valueOf(cmd.getOptionValue("m", "3"));
 
         final int totalIterations = Integer.valueOf(cmd.getOptionValue("n"));
-        int i = 0;
+        int count = 0;
         int keyIndex = min;
 
-        while (i < totalIterations) {
+        while (count < totalIterations) {
             final String key = "key" + keyIndex;
             final String value = "record-" + System.currentTimeMillis();
 
@@ -77,7 +83,7 @@ public class Producer {
 
             logger.info("Publishing to {}, {} = {}", kafkaTopic, key, value);
 
-            i++;
+            count++;
 
             if (keyIndex == max) {
                 keyIndex = min;
