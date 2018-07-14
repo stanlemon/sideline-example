@@ -43,7 +43,12 @@ public class Producer {
             cmd = parser.parse(options, args);
         } catch (final ParseException e) {
             System.out.println(e.getMessage());
-            formatter.printHelp("producer", options);
+            formatter.printHelp(
+                "producer",
+                "This command generates and publishes random messages to Kafka.",
+                options,
+                "If you're using maven to run this command you will need to use the -Dexec.args parameters to pass arguments, like this:\n mvn clean compile exec:java@producer -Dexec.args=\"-n 1000 -s 100\""
+            );
 
             System.exit(1);
             return;

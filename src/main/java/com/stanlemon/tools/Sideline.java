@@ -134,7 +134,13 @@ public class Sideline {
             return parser.parse(options, args);
         } catch (final ParseException e) {
             System.out.println(e.getMessage());
-            formatter.printHelp("sideline", options);
+            formatter.printHelp(
+                "sideline",
+                "This command starts, resumes and stops sidelines for the example topology.",
+                options,
+                "If you're using maven to run this command you will need to use the -Dexec.args parameters to pass arguments, like this:\n"
+                    + "mvn clean compile exec:java@sideline -Dexec.args=\"-t start -c Stan Lemon -r Testing -d {\\\"filteredKeys\\\":[\\\"key2\\\"]}\""
+            );
 
             System.exit(1);
             return null;

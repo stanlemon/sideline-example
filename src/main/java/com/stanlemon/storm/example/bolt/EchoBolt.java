@@ -1,5 +1,6 @@
 package com.stanlemon.storm.example.bolt;
 
+import com.codahale.metrics.Counter;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
@@ -16,14 +17,19 @@ public class EchoBolt extends BaseRichBolt {
 
     private transient OutputCollector collector;
 
+    private transient Counter tupleCounter;
+
     @Override
     public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
         this.collector = collector;
+        this.tupleCounter = context.registerCounter("echoCount");
     }
 
     @Override
     public void execute(Tuple input) {
         logger.info("Tuple = {}", input);
+
+        this.tupleCounter.inc();
 
         collector.ack(input);
     }
