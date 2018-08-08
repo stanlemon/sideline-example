@@ -35,6 +35,5 @@ sideline.persistence.zookeeper.root: /storm-dynamic-spout
 ## Zookeeper Watch Trigger configuration
 sideline.zookeeper_watch_trigger.servers:
   - 127.0.0.1:2181
-sideline.zookeeper_watch_trigger.roots:
-  - /sideline-trigger
+sideline.zookeeper_watch_trigger.root: /sideline-trigger
 sideline.zookeeper_watch_trigger.filter_chain_step_builder_class: com.stanlemon.storm.example.filter.KeyFilterBuilder

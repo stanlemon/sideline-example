@@ -24,7 +24,6 @@ import org.slf4j.LoggerFactory;
 import javax.xml.bind.DatatypeConverter;
 import java.security.MessageDigest;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Map;
 
 public class Sideline {
@@ -35,7 +34,7 @@ public class Sideline {
         final CommandLine cmd = getArguments(args);
 
         final String sidelineId = cmd.getOptionValue("i");
-        final SidelineType sidelineType = getSidelineType(cmd.getOptionValue("type"));
+        final SidelineType sidelineType = SidelineType.fromValue(cmd.getOptionValue("type"));
 
         Preconditions.checkArgument(
             !sidelineType.equals(SidelineType.START)
@@ -61,7 +60,7 @@ public class Sideline {
             final CuratorHelper curatorHelper = new CuratorHelper(curator);
 
             @SuppressWarnings("unchecked")
-            final String zkRoot = ((List<String>) config.get(Config.ZK_ROOTS)).get(0);
+            final String zkRoot = (String) config.get(Config.ZK_ROOT);
 
             if (sidelineType.equals(SidelineType.START)) {
                 final LocalDateTime createdAt = LocalDateTime.now();
@@ -144,19 +143,6 @@ public class Sideline {
 
             System.exit(1);
             return null;
-        }
-    }
-
-    private static SidelineType getSidelineType(final String sidelineType) {
-        switch (sidelineType.toLowerCase()) {
-            case "start":
-                return SidelineType.START;
-            case "resume":
-                return SidelineType.RESUME;
-            case "resolve":
-                return SidelineType.RESOLVE;
-            default:
-                throw new IllegalArgumentException("Provide \"" + sidelineType + "\" is not a valid example type!");
         }
     }
 }

@@ -139,12 +139,14 @@
                         <configuration>
                             <mainClass>com.stanlemon.tools.RunTopology</mainClass>
                             <includeProjectDependencies>true</includeProjectDependencies>
+                            <!--
                             <systemProperties>
                                 <systemProperty>
                                     <key>storm.conf.file</key>
                                     <value>config/storm.yaml</value>
                                 </systemProperty>
                             </systemProperties>
+                            -->
                         </configuration>
                     </execution>
                     <execution>
