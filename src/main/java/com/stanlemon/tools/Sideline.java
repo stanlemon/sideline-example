@@ -21,7 +21,8 @@ import org.apache.storm.utils.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.xml.bind.DatatypeConverter;
+import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.time.LocalDateTime;
 import java.util.Map;
@@ -77,8 +78,11 @@ public class Sideline {
                 );
 
                 // Use the data map, which should be things unique to define this criteria to generate our id
-                final String id = DatatypeConverter.printHexBinary(MessageDigest.getInstance("MD5")
-                    .digest(dataJson.getBytes("UTF-8")));
+                final MessageDigest md5 = MessageDigest.getInstance("MD5");
+                md5.update(StandardCharsets.UTF_8.encode(dataJson));
+                final String id = String.format("%032x", new BigInteger(1, md5.digest()));
+
+                logger.info("Saving sideline {}/{}", zkRoot, id);
 
                 curatorHelper.writeJson(zkRoot + "/" + id, triggerEvent);
 
