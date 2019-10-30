@@ -1,9 +1,14 @@
 package com.stanlemon.tools;
 
 import com.google.common.base.Preconditions;
-import com.salesforce.storm.spout.dynamic.JSON;
-import com.salesforce.storm.spout.sideline.recipes.trigger.TriggerEventHelper;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.salesforce.storm.spout.dynamic.Tools;
+import com.salesforce.storm.spout.dynamic.persistence.zookeeper.CuratorFactory;
+import com.salesforce.storm.spout.dynamic.persistence.zookeeper.CuratorHelper;
 import com.salesforce.storm.spout.sideline.trigger.SidelineType;
+import com.salesforce.storm.spout.sideline.recipes.trigger.zookeeper.Config;
+import com.salesforce.storm.spout.sideline.recipes.trigger.TriggerEvent;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -11,12 +16,20 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.apache.curator.framework.CuratorFramework;
 import org.apache.storm.utils.Utils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
+import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.time.LocalDateTime;
 import java.util.Map;
 
 public class Sideline {
+
+    private static final Logger logger = LoggerFactory.getLogger(Sideline.class);
 
     public static void main(String[] args) throws Exception {
         final CommandLine cmd = getArguments(args);
@@ -37,29 +50,65 @@ public class Sideline {
 
         final Map<String, Object> config = Utils.findAndReadConfigFile("config/topology.yaml", true);
 
-        // Turn the supplied data for the filter chain step into a map
-        @SuppressWarnings("unchecked")
-        final Map<String, Object> data = new JSON(new HashMap<>()).from(cmd.getOptionValue("data"), Map.class);
+        final Gson gson = new GsonBuilder()
+            .setDateFormat("yyyy-MM-dd HH:mm:ss")
+            .create();
 
-        final TriggerEventHelper triggerEventHelper = new TriggerEventHelper(config);
+        try (final CuratorFramework curator = CuratorFactory.createNewCuratorInstance(
+            Tools.stripKeyPrefix(Config.PREFIX, config),
+            Sideline.class.getSimpleName()
+        )) {
+            final CuratorHelper curatorHelper = new CuratorHelper(curator);
 
-        switch (sidelineType) {
-            case START:
-                triggerEventHelper.startTriggerEvent(
-                    data,
+            @SuppressWarnings("unchecked")
+            final String zkRoot = (String) config.get(Config.ZK_ROOT);
+
+            if (sidelineType.equals(SidelineType.START)) {
+                final LocalDateTime createdAt = LocalDateTime.now();
+                final String dataJson = cmd.getOptionValue("data");
+
+                final TriggerEvent triggerEvent = new TriggerEvent(
+                    sidelineType,
+                    gson.fromJson(cmd.getOptionValue("data"), Map.class),
+                    createdAt,
                     cmd.getOptionValue("createdby"),
-                    cmd.getOptionValue("reason")
+                    cmd.getOptionValue("reason"),
+                    false,
+                    createdAt
                 );
-                break;
-            case RESUME:
-                triggerEventHelper.resumeTriggerEvent(sidelineId);
-                break;
-            case RESOLVE:
-                triggerEventHelper.resolveTriggerEvent(sidelineId);
-                break;
-        }
 
-        triggerEventHelper.close();
+                // Use the data map, which should be things unique to define this criteria to generate our id
+                final MessageDigest md5 = MessageDigest.getInstance("MD5");
+                md5.update(StandardCharsets.UTF_8.encode(dataJson));
+                final String id = String.format("%032x", new BigInteger(1, md5.digest()));
+
+                logger.info("Saving sideline {}/{}", zkRoot, id);
+
+                curatorHelper.writeJson(zkRoot + "/" + id, triggerEvent);
+
+                logger.info("Sideline {} saved!", id);
+            } else {
+                final TriggerEvent originalTriggerEvent = curatorHelper.readJson(zkRoot + "/" + sidelineId, TriggerEvent.class);
+
+                Preconditions.checkNotNull(originalTriggerEvent, "Could not find the original trigger event!");
+
+                logger.info("Loaded {} {}", zkRoot + "/" + sidelineId, originalTriggerEvent);
+                final LocalDateTime updatedAt = LocalDateTime.now();
+                final TriggerEvent triggerEvent = new TriggerEvent(
+                    sidelineType,
+                    originalTriggerEvent.getData(),
+                    originalTriggerEvent.getCreatedAt(),
+                    originalTriggerEvent.getCreatedBy(),
+                    originalTriggerEvent.getDescription(),
+                    false,
+                    updatedAt
+                );
+
+                curatorHelper.writeJson(zkRoot + "/" + sidelineId, triggerEvent);
+
+                logger.info("Sideline {} updated!", sidelineId);
+            }
+        }
     }
 
     private static CommandLine getArguments(String[] args) {

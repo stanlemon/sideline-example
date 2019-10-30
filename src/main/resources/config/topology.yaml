@@ -25,7 +25,6 @@ spout.persistence.zookeeper.root: /storm-dynamic-spout
 
 ## Which example trigger implementation to use, this one is shipped with the library and based off Zookeeper watches
 sideline.trigger_class: com.salesforce.storm.spout.sideline.recipes.trigger.zookeeper.ZookeeperWatchTrigger
-sideline.filter_chain_step_class: com.stanlemon.storm.example.filter.KeyFilter
 
 ## Sideline persistence configuration (where to store filters and consumer offsets)
 sideline.persistence_adapter.class: com.salesforce.storm.spout.sideline.persistence.ZookeeperPersistenceAdapter
