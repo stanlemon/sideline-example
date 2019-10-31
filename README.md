@@ -17,7 +17,7 @@ mvn clean compile exec:java@producer -Dexec.args="-n 50 -s 1000"
 
 Start a sideline for key2.
 ```
-mvn clean compile exec:java@sideline -Dexec.args="-t start -c Stan Lemon -r Testing -d {\"filteredKeys\":[\"key2\"]}"
+mvn clean compile exec:java@sideline -Dexec.args="-t start -c Stan Lemon -r Testing -k  key2"
 ```
 
 Resume a sideline for key2.

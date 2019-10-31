@@ -2,6 +2,7 @@ package com.stanlemon.tools;
 
 import com.google.common.base.Preconditions;
 import com.salesforce.storm.spout.dynamic.JSON;
+import com.salesforce.storm.spout.sideline.recipes.trigger.KeyFilter;
 import com.salesforce.storm.spout.sideline.recipes.trigger.TriggerEventHelper;
 import com.salesforce.storm.spout.sideline.trigger.SidelineType;
 import org.apache.commons.cli.CommandLine;
@@ -13,12 +14,15 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.storm.utils.Utils;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class Sideline {
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
         final CommandLine cmd = getArguments(args);
 
         final String sidelineId = cmd.getOptionValue("i");
@@ -26,7 +30,7 @@ public class Sideline {
 
         Preconditions.checkArgument(
             !sidelineType.equals(SidelineType.START)
-                || (sidelineType.equals(SidelineType.START) && cmd.hasOption("c") && cmd.hasOption("r") && cmd.hasOption("d")),
+                || (sidelineType.equals(SidelineType.START) && cmd.hasOption("c") && cmd.hasOption("r") && cmd.hasOption("k")),
             "When starting a sideline you must specify createdby, reason and data options"
         );
 
@@ -45,8 +49,10 @@ public class Sideline {
 
         switch (sidelineType) {
             case START:
+                final List<String> keys = Arrays.stream(cmd.getOptionValue("keys").split(","))
+                    .collect(Collectors.toList());
                 triggerEventHelper.startTriggerEvent(
-                    data,
+                    new KeyFilter(keys),
                     cmd.getOptionValue("createdby"),
                     cmd.getOptionValue("reason")
                 );
@@ -75,8 +81,8 @@ public class Sideline {
         final Option reason = new Option("r", "reason", true, "reason for the example");
         options.addOption(reason);
 
-        final Option data = new Option("d", "data", true, "data to pass along to the filter when sidelining");
-        options.addOption(data);
+        final Option keys = new Option("k", "keys", true, "keys to filter when sidelining, separated by commas (no spaces), eg. key1,key2,key3");
+        options.addOption(keys);
 
         final Option sidelineId = new Option("i", "id", true, "sideline id to update with a new type");
         options.addOption(sidelineId);
