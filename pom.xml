@@ -10,7 +10,7 @@
 
     <properties>
         <storm.version>1.2.2</storm.version>
-        <kafka.version>1.1.0</kafka.version>
+        <kafka.version>2.4.1</kafka.version>
         <dynamicSpout.version>0.10-SNAPSHOT</dynamicSpout.version>
         <curator.version>4.0.1</curator.version>
     </properties>
